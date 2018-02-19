@@ -16,36 +16,42 @@ mod toggl;
 use std::thread::sleep;
 use std::env;
 
-fn daemon_loop(token: &str, addr: &str) {
-    let res = toggl::check(token).expect("Ill-formed response");
-    info!(
-        "{} in submitting",
-        if toggl::report(&res, addr) {
-            "success"
-        } else {
-            "error"
-        }
-    );
+const USAGE: &'static str = "Usage: whosd <api_token> <user_id> [<http_host> <period>]";
+const DEFAULT_HOST: &'static str = "http://127.0.0.1:8080";
+const REPORT_PERIOD: u64 = 30;
+const PID_FILE: &'static str = "/tmp/whosd.pid";
+
+fn daemon_loop(token: &str, addr: &str, id: status::ID) {
+    let mut res = toggl::check(token).expect("Ill-formed response");
+    debug!("Info retrieved");
+
+    res.id = id;
+    let res = toggl::report(&res, addr);
+    if res {
+        info!("Info reported");
+    } else {
+        error!("Error in reporting");
+    }
 }
 
 fn main() {
-    let api_token = env::args().nth(1).expect(
-        "Usage: whosd <api_token> [<http_host> <period>]",
-    );
-    let addr = env::args().nth(2).unwrap_or(
-        "http://127.0.0.1:8080".to_string(),
-    );
+    let api_token = env::args().nth(1).expect(USAGE);
+    let id = env::args()
+        .nth(2)
+        .and_then(|s| s.parse::<status::ID>().ok())
+        .expect(USAGE);
+    let addr = env::args().nth(3).unwrap_or(DEFAULT_HOST.to_string());
     let period = std::time::Duration::from_secs(
         env::args()
-            .nth(3)
+            .nth(4)
             .and_then(|s| s.parse::<u64>().ok())
-            .unwrap_or(5),
+            .unwrap_or(REPORT_PERIOD),
     );
 
-    match daemonize::Daemonize::new().pid_file("/tmp/whosd").start() {
+    match daemonize::Daemonize::new().pid_file(PID_FILE).start() {
         Ok(()) => {
             loop {
-                daemon_loop(&api_token, &addr);
+                daemon_loop(&api_token, &addr, id);
                 sleep(period);
             }
         }
