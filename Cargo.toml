@@ -2,6 +2,7 @@
 name = "whos-online"
 version = "0.1.0"
 authors = ["Kitsu <mail@kitsu.me>"]
+description = "Tool for warching whos tracking their time"
 readme = "README.md"
 license = "MIT"
 repository = "https://github.com/l4l/whos-online"
