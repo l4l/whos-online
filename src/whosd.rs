@@ -36,10 +36,7 @@ fn daemon_loop(token: &str, addr: &str, id: status::ID) {
 
 fn main() {
     let api_token = env::args().nth(1).expect(USAGE);
-    let id = env::args()
-        .nth(2)
-        .and_then(|s| s.parse::<status::ID>().ok())
-        .expect(USAGE);
+    let id = env::args().nth(2).expect(USAGE);
     let addr = env::args().nth(3).unwrap_or(DEFAULT_HOST.to_string());
     let period = std::time::Duration::from_secs(
         env::args()
@@ -51,7 +48,7 @@ fn main() {
     match daemonize::Daemonize::new().pid_file(PID_FILE).start() {
         Ok(()) => {
             loop {
-                daemon_loop(&api_token, &addr, id);
+                daemon_loop(&api_token, &addr, id.to_owned());
                 sleep(period);
             }
         }

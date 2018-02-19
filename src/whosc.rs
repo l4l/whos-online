@@ -19,7 +19,7 @@ type Cache = Mutex<status::Map>;
 #[post("/", format = "application/json", data = "<message>")]
 fn update(message: Json<status::TogglResponse>, map: State<Cache>) {
     let mut locked_map = map.lock().expect("can't lock the map");
-    locked_map.insert(message.id, message.copy_data().unwrap());
+    locked_map.insert(message.id.to_owned(), message.copy_data().unwrap());
 }
 
 #[get("/", format = "application/json")]

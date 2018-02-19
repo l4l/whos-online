@@ -15,7 +15,7 @@ impl Clone for Status {
     }
 }
 
-pub type ID = usize;
+pub type ID = String;
 pub type Map = HashMap<ID, Status>;
 
 #[derive(Debug, Deserialize, Serialize)]
