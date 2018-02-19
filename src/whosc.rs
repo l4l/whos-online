@@ -8,15 +8,13 @@ extern crate serde_derive;
 
 use std::env;
 use std::sync::Mutex;
-use std::collections::HashMap;
 
 use rocket::State;
 use rocket_contrib::Json;
 
 mod status;
 
-type Map = HashMap<status::ID, status::Status>;
-type Cache = Mutex<Map>;
+type Cache = Mutex<status::Map>;
 
 #[post("/", format = "application/json", data = "<message>")]
 fn update(message: Json<status::TogglResponse>, map: State<Cache>) {
@@ -25,7 +23,7 @@ fn update(message: Json<status::TogglResponse>, map: State<Cache>) {
 }
 
 #[get("/", format = "application/json")]
-fn fetch(map: State<Cache>) -> Json<Map> {
+fn fetch(map: State<Cache>) -> Json<status::Map> {
     let v = map.lock().expect("can't lock the map").clone();
     Json(v)
 }
@@ -33,6 +31,6 @@ fn fetch(map: State<Cache>) -> Json<Map> {
 fn main() {
     rocket::ignite()
         .mount("/", routes![fetch, update])
-        .manage(Cache::new(HashMap::new()))
+        .manage(Cache::new(status::Map::new()))
         .launch();
 }

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Status {
@@ -15,6 +16,7 @@ impl Clone for Status {
 }
 
 pub type ID = usize;
+pub type Map = HashMap<ID, Status>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TogglResponse {
