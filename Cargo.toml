@@ -2,6 +2,9 @@
 name = "whos-online"
 version = "0.1.0"
 authors = ["Kitsu <mail@kitsu.me>"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/l4l/whos-online"
 
 [[bin]]
 name = "whosd"
