@@ -16,7 +16,7 @@ impl Clone for Status {
 }
 
 pub type ID = String;
-pub type Map = HashMap<ID, Status>;
+pub type Map = HashMap<ID, Option<Status>>;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct TogglResponse {

@@ -58,7 +58,7 @@ fn update(message: Json<status::TogglResponse>, cache: State<Cache>, recency: St
     let mut map = cache.lock().expect("can't lock the map");
     let mut rec = recency.lock().expect("can't lock the recency");
     let ref id = message.id;
-    map.insert(id.to_owned(), message.copy_data().unwrap());
+    map.insert(id.to_owned(), message.copy_data());
     rec.push(Update::new(id.to_owned()));
 }
 
@@ -66,12 +66,10 @@ fn update(message: Json<status::TogglResponse>, cache: State<Cache>, recency: St
 fn fetch(cache: State<Cache>, recency: State<Recency>) -> Json<status::Map> {
     let mut map = cache.lock().expect("can't lock the map");
     let mut rec = recency.lock().expect("can't lock the recency");
-    for i in rec.drain().rev().take_while(|x| {
-        x.appear.elapsed().as_secs() >= OBSOLETE
-    })
-    {
-        map.remove(&i.id);
-    }
+    rec.drain()
+        .rev()
+        .take_while(|x| x.appear.elapsed().as_secs() >= OBSOLETE)
+        .for_each(|i| { map.insert(i.id, None); });
     let v = map.clone();
     Json(v)
 }
