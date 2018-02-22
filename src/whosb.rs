@@ -17,6 +17,7 @@ use std::env;
 
 mod status;
 
+const USAGE: &'static str = "Usage: whosb [<whosc_host>]\n\nNote: env TG_BOT_TOKEN should be properly set";
 const BOT_TOKEN: &'static str = "TG_BOT_TOKEN";
 const DEFAULT_HOST: &'static str = "http://127.0.0.1:8080";
 const NO_USERS: &'static str = "No users found";
@@ -31,10 +32,11 @@ fn fetch(host: &str) -> Option<status::Map> {
 
 fn main() {
     let mut lp = Core::new().unwrap();
+    let host = env::args().nth(1).unwrap_or(DEFAULT_HOST.to_string());
     let bot = bot::RcBot::new(lp.handle(), &env::var(BOT_TOKEN).unwrap()).update_interval(200);
 
-    let handle = bot.new_cmd("/ask").and_then(|(bot, msg)| {
-        let text = fetch(DEFAULT_HOST)
+    let handle = bot.new_cmd("/ask").and_then(move |(bot, msg)| {
+        let text = fetch(&host)
             .map(|m| {
                 m.into_iter()
                     .map(|(k, v)| {

@@ -21,14 +21,14 @@ type Cache = Mutex<LruCache<status::ID, Option<status::Status>>>;
 
 #[post("/", format = "application/json", data = "<message>")]
 fn update(message: Json<status::TogglResponse>, cache: State<Cache>) {
-    let mut map = cache.lock().expect("can't lock the map");
+    let mut map = cache.lock().expect("Can't lock the map at update");
     let ref id = message.id;
     map.insert(id.to_owned(), message.copy_data());
 }
 
 #[get("/", format = "application/json")]
 fn fetch(cache: State<Cache>) -> Json<status::Map> {
-    let mut map = cache.lock().expect("can't lock the map");
+    let mut map = cache.lock().expect("Can't lock the map at fetch");
     let v: status::Map = map.iter()
         .map(|(k, v)| (k.to_owned(), v.to_owned()))
         .collect();
