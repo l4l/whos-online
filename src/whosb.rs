@@ -30,6 +30,19 @@ fn fetch(host: &str) -> Option<status::Map> {
         .and_then(|resp| serde_json::from_str(&resp).ok())
 }
 
+fn print_all(map: status::Map) -> String {
+    let s = map.into_iter().map(|(k, v)| {
+        let data_prnt = v.map(|d| format!("online [{}]", d.description))
+            .unwrap_or("offline".to_string());
+        format!("{} is {}", k, data_prnt)
+    }).collect::<String>();
+
+    match s.is_empty() {
+        true => NO_USERS.to_string(),
+        _ => s,
+    }
+}
+
 fn main() {
     let mut lp = Core::new().unwrap();
     let host = env::args().nth(1).unwrap_or(DEFAULT_HOST.to_string());
@@ -37,20 +50,7 @@ fn main() {
 
     let handle = bot.new_cmd("/ask").and_then(move |(bot, msg)| {
         let text = fetch(&host)
-            .map(|m| {
-                m.into_iter()
-                    .map(|(k, v)| {
-                        let data_prnt = v.map(|d| format!("online [{}]", d.description))
-                            .unwrap_or("offline".to_string());
-                        format!("{} is {}", k, data_prnt)
-                    })
-                    .collect()
-            })
-            .map(|m: String| if m.is_empty() {
-                NO_USERS.to_string()
-            } else {
-                m
-            })
+            .map(print_all)
             .unwrap_or(FETCH_ERROR.to_string());
         bot.message(msg.chat.id, text).send()
     });
