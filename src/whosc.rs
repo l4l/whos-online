@@ -20,7 +20,7 @@ const OBSOLETE: u64 = 100;
 type Cache = Mutex<LruCache<status::ID, Option<status::Status>>>;
 
 #[post("/", format = "application/json", data = "<message>")]
-fn update(message: Json<status::TogglResponse>, cache: State<Cache>) {
+fn update(message: Json<status::TrackingData>, cache: State<Cache>) {
     let mut map = cache.lock().expect("Can't lock the map at update");
     let ref id = message.id;
     map.insert(id.to_owned(), message.copy_data());

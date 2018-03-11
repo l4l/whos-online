@@ -19,13 +19,13 @@ pub type ID = String;
 pub type Map = HashMap<ID, Option<Status>>;
 
 #[derive(Debug, Deserialize, Serialize)]
-pub struct TogglResponse {
+pub struct TrackingData {
     #[serde(default)]
     pub id: ID,
     pub data: Option<Status>,
 }
 
-impl TogglResponse {
+impl TrackingData {
     pub fn copy_data(&self) -> Option<Status> {
         self.data.clone()
     }
