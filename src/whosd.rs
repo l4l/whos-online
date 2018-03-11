@@ -23,7 +23,7 @@ const USAGE: &'static str = "
 Whos-online daemon.
 
 Usage:
-  whosd <token> <user> [--host=<host>] [--period=<period>]
+  whosd <token> <user> [--host=<host>] [--period=<period>] [--workspace=<ws>]
   whosd (-h | --help)
   whosd --version
 
@@ -41,14 +41,19 @@ struct Args {
     arg_user: Option<String>,
     flag_host: String,
     flag_period: u64,
+    flag_workspace: Option<String>,
 }
 
 const PID_FILE: &'static str = "/tmp/whosd.pid";
 
-fn daemon_loop(token: &str, addr: &str, id: status::ID) {
+fn daemon_loop(token: &str, addr: &str, id: status::ID, wid: Option<i64>) {
     let mut res = toggl::check(token).expect("Ill-formed response");
     debug!("Info retrieved");
 
+    let rwid = res.data.iter().next().and_then(|ref d| d.wid);
+    if wid.is_some() && wid != rwid {
+        return;
+    }
     res.id = id;
     let res = toggl::report(&res, addr);
     if res {
@@ -67,11 +72,14 @@ fn main() {
     let id = args.arg_user.expect(USAGE);
     let addr = args.flag_host;
     let period = std::time::Duration::from_secs(args.flag_period);
+    let wid = args.flag_workspace.and_then(
+        |x| toggl::get_wid(&api_token, &x),
+    );
 
     match daemonize::Daemonize::new().pid_file(PID_FILE).start() {
         Ok(()) => {
             loop {
-                daemon_loop(&api_token, &addr, id.to_owned());
+                daemon_loop(&api_token, &addr, id.to_owned(), wid);
                 sleep(period);
             }
         }

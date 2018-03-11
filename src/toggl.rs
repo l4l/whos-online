@@ -28,6 +28,7 @@ pub fn report(r: &TogglResponse, url: &str) -> bool {
 pub struct TogglData {
     pub start: String,
     pub description: String,
+    pub wid: Option<i64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -35,4 +36,26 @@ pub struct TogglResponse {
     #[serde(default)]
     pub id: String,
     pub data: Option<TogglData>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct WorkspaceResponse {
+    #[serde(default)]
+    pub id: i64,
+    pub name: String,
+}
+
+pub fn get_wid(token: &str, name: &str) -> Option<i64> {
+    let client = Client::new();
+    let mut res = client
+        .get("https://toggl.com/api/v8/workspaces")
+        .basic_auth(token, Some("api_token"))
+        .send()
+        .ok()?;
+    let ws: Vec<WorkspaceResponse> = res.json().ok()?;
+    ws.into_iter().find(|ref resp| &resp.name == name).map(
+        |resp| {
+            resp.id.to_owned()
+        },
+    )
 }
