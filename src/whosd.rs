@@ -6,6 +6,9 @@ extern crate serde_json;
 extern crate serde_derive;
 
 extern crate daemonize;
+
+extern crate docopt;
+
 #[macro_use]
 extern crate log;
 
@@ -14,11 +17,32 @@ mod status;
 mod toggl;
 
 use std::thread::sleep;
-use std::env;
+use docopt::Docopt;
 
-const USAGE: &'static str = "Usage: whosd <api_token> <user_id> [<http_host> <period>]";
-const DEFAULT_HOST: &'static str = "http://127.0.0.1:8080";
-const REPORT_PERIOD: u64 = 30;
+const USAGE: &'static str = "
+Whos-online daemon.
+
+Usage:
+  whosd <token> <user> [--host=<host>] [--period=<period>]
+  whosd (-h | --help)
+  whosd --version
+
+Options:
+  -h --help           Show this help.
+  --version           Show version.
+  --host=<host>       Host for data reporting [default: http://127.0.0.1:8080]
+  --period=<period>   Period of data reports [default: 30]
+  --workspace=<ws>    Toggl workspace for monitoring
+";
+
+#[derive(Debug, Deserialize)]
+struct Args {
+    arg_token: Option<String>,
+    arg_user: Option<String>,
+    flag_host: String,
+    flag_period: u64,
+}
+
 const PID_FILE: &'static str = "/tmp/whosd.pid";
 
 fn daemon_loop(token: &str, addr: &str, id: status::ID) {
@@ -35,15 +59,14 @@ fn daemon_loop(token: &str, addr: &str, id: status::ID) {
 }
 
 fn main() {
-    let api_token = env::args().nth(1).expect(USAGE);
-    let id = env::args().nth(2).expect(USAGE);
-    let addr = env::args().nth(3).unwrap_or(DEFAULT_HOST.to_string());
-    let period = std::time::Duration::from_secs(
-        env::args()
-            .nth(4)
-            .and_then(|s| s.parse::<u64>().ok())
-            .unwrap_or(REPORT_PERIOD),
-    );
+    let args: Args = Docopt::new(USAGE)
+        .and_then(|d| d.deserialize())
+        .unwrap_or_else(|e| e.exit());
+
+    let api_token = args.arg_token.expect(USAGE);
+    let id = args.arg_user.expect(USAGE);
+    let addr = args.flag_host;
+    let period = std::time::Duration::from_secs(args.flag_period);
 
     match daemonize::Daemonize::new().pid_file(PID_FILE).start() {
         Ok(()) => {
