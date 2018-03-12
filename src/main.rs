@@ -36,6 +36,10 @@ Usage:
   whos-online (-h | --help)
   whos-online --version
 
+Arguments:
+  <token>                 Toggl API token that you may find at toggl.com/app/profile
+  <user>                  Username for data reporting (handy to use telegram nickname)
+
 Options:
   -b --bot                 Launch bot
   -c --collector           Launch tracking data collector
