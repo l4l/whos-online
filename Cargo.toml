@@ -7,18 +7,6 @@ readme = "README.md"
 license = "MIT"
 repository = "https://github.com/l4l/whos-online"
 
-[[bin]]
-name = "whosd"
-path = "src/whosd.rs"
-
-[[bin]]
-name = "whosc"
-path = "src/whosc.rs"
-
-[[bin]]
-name = "whosb"
-path = "src/whosb.rs"
-
 [dependencies]
 reqwest = "0.8"
 serde = "1.0"
